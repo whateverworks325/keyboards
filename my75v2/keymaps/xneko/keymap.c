@@ -17,13 +17,14 @@
 
 #define _BL 0
 #define _NL 1
+#define _ML 2
 
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     [_BL] = LAYOUT(
     KC__MUTE, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO,   KC_NO, KC_NO,   KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO,
     KC_ESC,  KC_1,  KC_2,  KC_3,  KC_4,  KC_5,  KC_EQL,  KC_GRAVE, KC_MINS, KC_6,  KC_7,  KC_8,  KC_9,  KC_0,  KC_PGUP,
-    KC_TAB,  KC_Q,  KC_W,  KC_E,  KC_R,  KC_T,  KC_LBRC, KC_NO, KC_RBRC, KC_Y,  KC_U,  KC_I,  KC_O,  KC_P,  KC_BSLS,
-    KC_NO,   KC_A,  KC_S,  KC_D,  LT(_NL, KC_F),  KC_G,  LSFT(KC_COMMA), KC_LSFT, LSFT(KC_DOT), KC_H, KC_J, KC_K, KC_L, KC_SCLN, KC_QUOT,
+    KC_TAB,  KC_Q,  KC_W,  KC_E,  KC_R,  KC_T,  KC_LBRC, KC_RCTL, KC_RBRC, KC_Y,  KC_U,  KC_I,  KC_O,  KC_P,  KC_BSLS,
+    KC_NO,   KC_A,  KC_S,  KC_D,  LT(_NL, KC_F),  KC_G,  LSFT(KC_COMMA), KC_LSFT, LSFT(KC_DOT), KC_H, LT(_ML, KC_J), KC_K, KC_L, KC_SCLN, KC_QUOT,
     LCTL(KC_SPACE), KC_Z,  KC_X,  KC_C,  KC_V,  KC_B,    KC_F10, KC_LALT, KC_F6, KC_N, KC_M, KC_COMMA, KC_DOT, KC_SLASH, KC_PGDOWN,
     KC_LGUI, KC_NO, KC_NO, LALT(KC_F5), KC_INS, MT(MOD_LSFT, KC_SPACE), KC_DEL, KC_LCTRL, KC_BSPC, MT(MOD_RSFT, KC_ENTER), KC_F4, KC_F7, KC_NO, KC_LEFT, KC_RIGHT
     ),
@@ -34,6 +35,14 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_LEFT, KC_DOWN, KC_UP, KC_RIGHT, KC_TRNS,
     KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_PGDOWN, KC_TRNS, KC_TRNS, KC_TRNS,
     KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS
+    ),
+    [_ML] = LAYOUT(
+    KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS,
+    KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS,
+    KC_TRNS, KC_TRNS, KC_TRNS, KC_MS_WH_UP, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS,
+    KC_TRNS, KC_MS_LEFT, KC_MS_UP, KC_MS_DOWN, KC_MS_RIGHT, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS,
+    KC_TRNS, KC_TRNS, KC_TRNS, KC_MS_WH_DOWN, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS,
+    KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_MS_BTN1, KC_TRNS, KC_TRNS, KC_TRNS, KC_MS_BTN2, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS
     )
 };
 
@@ -397,7 +406,7 @@ static void render_anim(void) {
 
     //assumes 1 frame prep stage
     void animation_phase(void) {
-	if(get_highest_layer(layer_state) == _NL){
+	if(get_highest_layer(layer_state) == _ML){
 	    anim_frame_duration = 300;
             current_rtogi_frame = (current_rtogi_frame + 1) % RTOGI_FRAMES;
             oled_write_raw_P(rtogi[abs((RTOGI_FRAMES-1)-current_rtogi_frame)], ANIM_SIZE);
@@ -455,13 +464,16 @@ void oled_task_user(void) {
     oled_set_cursor(7,0);
     oled_write_P(PSTR("Layer: "), false);
 
-    oled_set_cursor(7,1);
+    oled_set_cursor(7,2);
     switch (get_highest_layer(layer_state)) {
         case _BL:
             oled_write_P(PSTR("Default\n"), false);
             break;
         case _NL:
             oled_write_P(PSTR("Navigation\n"), false);
+            break;
+        case _ML:
+            oled_write_P(PSTR("Mouse\n"), false);
             break;
         default:
             // Or use the write_ln shortcut over adding '\n' to the end of your string
